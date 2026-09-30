@@ -1,0 +1,315 @@
+{
+  "name": "workflow generator",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {
+          "q": "subject:\"New Contact\"",
+          "readStatus": "unread"
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -368,
+        -96
+      ],
+      "id": "916375ab-0a5b-456e-93e0-a3449b937b5a",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "5NtNqcuzE5Gl9e4c",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Wyciągasz dane kontaktowe z wiadomości email. Zwracasz wyłącznie JSON z polami: name, email, phone. Jeśli czegoś brakuje, wpisz null."
+            },
+            {
+              "content": "=przełącz pole na Expression i wpisz {{ $json.snippet }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "textFormat": {
+            "textOptions": {
+              "type": "json_schema",
+              "name": "kontakt",
+              "schema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"name\":  { \"type\": [\"string\", \"null\"] },\n    \"email\": { \"type\": [\"string\", \"null\"] },\n    \"phone\": { \"type\": [\"string\", \"null\"] }\n  },\n  \"additionalProperties\": false,\n  \"required\": [\"name\", \"email\", \"phone\"]\n}",
+              "description": "Dane kontaktowe wyciągnięte z wiadomości email",
+              "strict": true
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        -160,
+        -96
+      ],
+      "id": "e99b69e8-e1e6-4fab-9e5c-00ab9b91c4bd",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "vc19S0gjT3VdZ49V",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "contacts",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "name",
+              "fieldValue": "={{ $json.output[0].content[0].text.name }}"
+            },
+            {
+              "fieldId": "email",
+              "fieldValue": "={{ $json.output[0].content[0].text.email }}"
+            },
+            {
+              "fieldId": "phone",
+              "fieldValue": "={{ $json.output[0].content[0].text.phone }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        192,
+        -96
+      ],
+      "id": "22cd8493-1973-4e1d-b85f-ccf3e52a7ede",
+      "name": "Create a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "uDzC88E7NGINFVZ9",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1m3MtgcT1pwM9JfR2vkYW80XASvkYiNud6Cv3i6Bz-2k",
+          "mode": "list",
+          "cachedResultName": "Kontakty",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1m3MtgcT1pwM9JfR2vkYW80XASvkYiNud6Cv3i6Bz-2k/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1m3MtgcT1pwM9JfR2vkYW80XASvkYiNud6Cv3i6Bz-2k/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "name": "={{ $('Message a model').item.json.output[0].content[0].text.name }}",
+            "email": "={{ $('Message a model').item.json.output[0].content[0].text.email }}",
+            "phone": "={{ $('Message a model').item.json.output[0].content[0].text.phone }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        368,
+        -96
+      ],
+      "id": "a699b323-caef-43d5-a81c-25c6223ef25b",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "gv5v6pAcyj5MCFrC",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0C569FLFLH",
+          "mode": "id"
+        },
+        "text": "=  Nowy kontakt: ( {{ $('Message a model').item.json.output[0].content[0].text.name }} )",
+        "otherOptions": {
+          "includeLinkToWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        592,
+        -96
+      ],
+      "id": "3a7fd54a-c521-4f6e-9f1c-83041e2bb3e7",
+      "name": "Send a message",
+      "webhookId": "27539fb6-b5e0-4e41-9df8-5b2440d3783c",
+      "credentials": {
+        "slackApi": {
+          "id": "EEibU9nS43pjdyXw",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "emailType": "text",
+        "message": "Dziękujemy za wiadomość! Otrzymaliśmy Twoje zgłoszenie i odezwiemy się wkrótce.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        800,
+        -96
+      ],
+      "id": "69a5e60f-8f3f-453a-87b8-1dc8601dfa06",
+      "name": "Reply to a message",
+      "webhookId": "301373b3-be95-42c7-b19e-a31fbe380e47",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "5NtNqcuzE5Gl9e4c",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Reply to a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "818b2379-ab49-451a-a0c9-b1fa32f94d71",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "df7a0abce622fd4e056b21c2d44d990f283fa0b1c979f6e723cf7fbc6589f229"
+  },
+  "nodeGroups": [],
+  "id": "nXH92wGJeHvY2XHh",
+  "tags": []
+}

@@ -1,0 +1,219 @@
+{
+  "name": "WORKFLOW Generator payment",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "platnosc",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -432,
+        -96
+      ],
+      "id": "471c5870-949d-48e5-955e-adc92abf35f3",
+      "name": "Webhook",
+      "webhookId": "c4f03cc6-4d19-4825-9641-bcfd1ac13e78"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0d70e69c-9fe4-4bc0-b46a-7b22456487d2",
+              "name": "customerId",
+              "value": "={{ $json.body.customerId }}",
+              "type": "string"
+            },
+            {
+              "id": "9fbafbd1-a791-4857-b7f3-566bf2ba5f19",
+              "name": "amount",
+              "value": "={{ $json.body.amount }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -224,
+        -96
+      ],
+      "id": "9c65bcc4-a386-43ec-9ccb-3ce5d6127eaa",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f32f3870-5815-4a08-bf1a-ff81ad4a5950",
+              "leftValue": "={{ $json.amount }}",
+              "rightValue": 100,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -16,
+        -96
+      ],
+      "id": "aca18178-f75d-4d3b-9e3b-cfed448d9591",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "resource": "customer",
+        "customerId": "={{ $('Edit Fields').item.json.customerId }}"
+      },
+      "type": "n8n-nodes-base.stripe",
+      "typeVersion": 1,
+      "position": [
+        192,
+        -192
+      ],
+      "id": "50803b50-3990-4127-9909-d88bbc92b305",
+      "name": "Get a customer",
+      "credentials": {
+        "stripeApi": {
+          "id": "CY2IZ6Z7vwUtZCZc",
+          "name": "Stripe account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "webhook",
+        "content": "=Duża płatność: {{ $('Edit Fields').item.json.amount }} od {{ $json.email }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [
+        400,
+        -192
+      ],
+      "id": "3050bc03-ef92-4686-b6de-8bbe7fad8c9d",
+      "name": "Discord",
+      "webhookId": "4d36a477-5ab6-4c5b-af1b-351b3426a29c",
+      "credentials": {
+        "discordWebhookApi": {
+          "id": "LpKsToizAVRbf7UA",
+          "name": "Discord Webhook account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{ \"ok\": true }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        624,
+        -128
+      ],
+      "id": "a5208037-ef7e-4103-8d32-5ad9e844ebb0",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Get a customer",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a customer": {
+      "main": [
+        [
+          {
+            "node": "Discord",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Discord": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "178a9867-325f-41bf-8741-bf3f408ea399",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "df7a0abce622fd4e056b21c2d44d990f283fa0b1c979f6e723cf7fbc6589f229"
+  },
+  "nodeGroups": [],
+  "id": "CIhWyfu98YCxQ8WG",
+  "tags": []
+}
