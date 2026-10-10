@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "compile:fixtures": "node scripts/compile-fixtures.ts"
   },
   "dependencies": {
     "@codemirror/lang-json": "^6.0.2",

@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
+import { CompilerPreview } from './components/CompilerPreview.tsx'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
 
 type Status = 'checking' | 'connected' | 'not-configured' | 'error'
@@ -30,7 +31,7 @@ export default function App() {
   }, [])
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-2xl flex-col justify-center gap-6 px-6">
+    <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-6 px-6 py-12">
       <motion.h1
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -46,6 +47,7 @@ export default function App() {
         <StatusLabel status={status} />
         {error && <p className="mt-2 font-mono text-xs text-red-400">{error}</p>}
       </div>
+      <CompilerPreview />
     </main>
   )
 }

@@ -1,0 +1,78 @@
+{
+  "name": "workflow generator",
+  "trigger": {
+    "action": "gmail.newMessage",
+    "integration": "gmail",
+    "params": { "subject": "New Contact", "readStatus": "unread" }
+  },
+  "steps": [
+    {
+      "id": "s1",
+      "action": "openai.message",
+      "integration": "openai",
+      "after": "trigger",
+      "params": {
+        "model": "gpt-4o-mini",
+        "system": "Wyciągasz dane kontaktowe z wiadomości email. Zwracasz wyłącznie JSON z polami: name, email, phone. Jeśli czegoś brakuje, wpisz null.",
+        "user": { "ref": "trigger", "field": "snippet" },
+        "schemaName": "kontakt",
+        "schemaDescription": "Dane kontaktowe wyciągnięte z wiadomości email",
+        "fields": [
+          { "name": "name", "type": "string", "nullable": true },
+          { "name": "email", "type": "string", "nullable": true },
+          { "name": "phone", "type": "string", "nullable": true }
+        ]
+      }
+    },
+    {
+      "id": "s2",
+      "action": "supabase.createRow",
+      "integration": "supabase",
+      "after": "s1",
+      "params": {
+        "table": "contacts",
+        "fields": {
+          "name": { "ref": "s1", "field": "name" },
+          "email": { "ref": "s1", "field": "email" },
+          "phone": { "ref": "s1", "field": "phone" }
+        }
+      }
+    },
+    {
+      "id": "s3",
+      "action": "googleSheets.appendRow",
+      "integration": "googleSheets",
+      "after": "s2",
+      "params": {
+        "documentId": "1m3MtgcT1pwM9JfR2vkYW80XASvkYiNud6Cv3i6Bz-2k",
+        "sheet": "gid=0",
+        "columns": {
+          "name": { "ref": "s1", "field": "name" },
+          "email": { "ref": "s1", "field": "email" },
+          "phone": { "ref": "s1", "field": "phone" }
+        }
+      }
+    },
+    {
+      "id": "s4",
+      "action": "slack.sendMessage",
+      "integration": "slack",
+      "after": "s3",
+      "params": {
+        "channelId": "C0C569FLFLH",
+        "text": { "template": ["  Nowy kontakt: ( ", { "ref": "s1", "field": "name" }, " )"] }
+      }
+    },
+    {
+      "id": "s5",
+      "action": "gmail.reply",
+      "integration": "gmail",
+      "after": "s4",
+      "params": {
+        "messageId": { "ref": "trigger", "field": "id" },
+        "message": "Dziękujemy za wiadomość! Otrzymaliśmy Twoje zgłoszenie i odezwiemy się wkrótce."
+      }
+    }
+  ],
+  "missing": []
+}

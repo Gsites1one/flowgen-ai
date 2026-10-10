@@ -1,0 +1,65 @@
+{
+  "name": "WORKFLOW Generator payment",
+  "trigger": {
+    "action": "webhook.receive",
+    "integration": "webhook",
+    "params": { "method": "POST", "path": "platnosc", "bodyFields": ["customerId", "amount"] }
+  },
+  "steps": [
+    {
+      "id": "s1",
+      "action": "core.editFields",
+      "integration": "core",
+      "after": "trigger",
+      "params": {
+        "fields": [
+          { "name": "customerId", "value": { "ref": "trigger", "field": "customerId" }, "type": "string" },
+          { "name": "amount", "value": { "ref": "trigger", "field": "amount" }, "type": "number" }
+        ]
+      }
+    },
+    {
+      "id": "s2",
+      "action": "core.if",
+      "integration": "core",
+      "after": "s1",
+      "params": {
+        "dataType": "number",
+        "left": { "ref": "s1", "field": "amount" },
+        "operation": "gt",
+        "right": 100
+      }
+    },
+    {
+      "id": "s3",
+      "action": "stripe.getCustomer",
+      "integration": "stripe",
+      "after": { "step": "s2", "branch": "true" },
+      "params": { "customerId": { "ref": "s1", "field": "customerId" } }
+    },
+    {
+      "id": "s4",
+      "action": "discord.webhookMessage",
+      "integration": "discord",
+      "after": "s3",
+      "params": {
+        "content": {
+          "template": [
+            "Duża płatność: ",
+            { "ref": "s1", "field": "amount" },
+            " od ",
+            { "ref": "s3", "field": "email" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "s5",
+      "action": "webhook.respond",
+      "integration": "webhook",
+      "after": [{ "step": "s2", "branch": "false" }, "s4"],
+      "params": { "body": { "ok": true } }
+    }
+  ],
+  "missing": []
+}
