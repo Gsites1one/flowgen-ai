@@ -25,11 +25,43 @@ export type CatalogEntry = {
   needsWebhookId?: boolean
   /** Wyjścia inne niż pojedyncze `main[0]` (If: true/false). */
   branches?: readonly ['true', 'false']
+  /** Węzeł przepuszcza dane wejściowe bez zmian (If). */
+  passthrough?: boolean
   paramsSchema: z.ZodType
   /** Pola wyjściowe: nazwa pola w RP → ścieżka w `$json`. */
   outputs(params: never): Record<string, string>
   /** Parametry węzła w formacie n8n. */
   build(params: never, ctx: BuildContext): Record<string, unknown>
+  /** Reguły walidatora dla parametrów w formacie n8n. */
+  n8n: N8nParamRules
+  /** Ścieżki wyjściowe wyprowadzone z parametrów n8n (walidator nie ufa kompilatorowi). */
+  nodeOutputs(parameters: Record<string, unknown>): NodeOutputs
+}
+
+export type N8nParamRules = {
+  /** Ścieżki, które muszą istnieć i być niepuste. */
+  required: readonly string[]
+  /** Ścieżki o wymaganej, stałej wartości — przypinają węzeł do akcji z katalogu. */
+  fixed?: Readonly<Record<string, unknown>>
+  /** Pozostałe dozwolone klucze najwyższego poziomu. */
+  optional?: readonly string[]
+}
+
+export type NodeOutputs = {
+  /** Dokładne ścieżki w `$json`. */
+  exact: string[]
+  /** Przedrostki, pod którymi dozwolona jest dowolna ścieżka (np. `body` w Webhooku). */
+  prefixes?: string[]
+}
+
+/** Bezpieczny odczyt zagnieżdżonej wartości: `getPath(params, 'columns.value')`. */
+export function getPath(source: unknown, path: string): unknown {
+  let current = source
+  for (const key of path.split('.')) {
+    if (current === null || typeof current !== 'object' || !Object.hasOwn(current, key)) return undefined
+    current = (current as Record<string, unknown>)[key]
+  }
+  return current
 }
 
 export function defineEntry<S extends z.ZodType>(

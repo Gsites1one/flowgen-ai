@@ -18,4 +18,6 @@ export const stripeGetCustomer = defineEntry({
     resource: 'customer',
     customerId: ctx.value(p.customerId),
   }),
+  n8n: { required: ['customerId'], fixed: { resource: 'customer' } },
+  nodeOutputs: () => ({ exact: ['id', 'email', 'name'] }),
 })

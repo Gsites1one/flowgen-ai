@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { defineEntry, plainOutputs } from '../schema/catalog.ts'
+import { defineEntry, getPath, pathKey, plainOutputs } from '../schema/catalog.ts'
 import { paramValueSchema } from '../schema/plan.ts'
 
 export const supabaseCreateRow = defineEntry({
@@ -25,4 +25,10 @@ export const supabaseCreateRow = defineEntry({
       })),
     },
   }),
+  n8n: { required: ['tableId', 'fieldsUi.fieldValues'] },
+  nodeOutputs: (parameters) => {
+    const rows = getPath(parameters, 'fieldsUi.fieldValues')
+    const ids = Array.isArray(rows) ? rows.map((r) => String(getPath(r, 'fieldId') ?? '')) : []
+    return { exact: ['id', ...ids.filter(Boolean).map(pathKey)] }
+  },
 })

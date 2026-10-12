@@ -1,7 +1,10 @@
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
+import { AuthPanel } from './components/AuthPanel.tsx'
 import { CompilerPreview } from './components/CompilerPreview.tsx'
+import { ValidatorPreview } from './components/ValidatorPreview.tsx'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
+import { useSession } from './lib/useSession.ts'
 
 type Status = 'checking' | 'connected' | 'not-configured' | 'error'
 
@@ -10,6 +13,7 @@ const TABLES = ['workflows', 'workflow_versions', 'clarifications', 'usage'] as 
 export default function App() {
   const [status, setStatus] = useState<Status>(isSupabaseConfigured ? 'checking' : 'not-configured')
   const [error, setError] = useState<string | null>(null)
+  const session = useSession()
 
   useEffect(() => {
     const client = supabase
@@ -47,7 +51,9 @@ export default function App() {
         <StatusLabel status={status} />
         {error && <p className="mt-2 font-mono text-xs text-red-400">{error}</p>}
       </div>
-      <CompilerPreview />
+      <AuthPanel session={session} />
+      <CompilerPreview signedIn={Boolean(session)} />
+      <ValidatorPreview signedIn={Boolean(session)} />
     </main>
   )
 }

@@ -316,7 +316,7 @@ tests/
 | 6 | historia wersji, klonowanie | przywrócenie dowolnej wersji |
 | 7 | szlif, Vercel, demo | publiczny adres + nagranie |
 
-**Aktualny etap: 2.**
+**Aktualny etap: 3.**
 
 ---
 

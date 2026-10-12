@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { defineEntry, plainOutputs } from '../schema/catalog.ts'
+import { defineEntry, getPath, pathKey, plainOutputs } from '../schema/catalog.ts'
 import { paramValueSchema } from '../schema/plan.ts'
 
 export const editFields = defineEntry({
@@ -32,6 +32,12 @@ export const editFields = defineEntry({
     },
     options: {},
   }),
+  n8n: { required: ['assignments.assignments'], optional: ['options'] },
+  nodeOutputs: (parameters) => {
+    const rows = getPath(parameters, 'assignments.assignments')
+    const names = Array.isArray(rows) ? rows.map((r) => String(getPath(r, 'name') ?? '')) : []
+    return { exact: names.filter(Boolean).map(pathKey) }
+  },
 })
 
 const numberOps = ['equals', 'notEquals', 'gt', 'gte', 'lt', 'lte'] as const
@@ -83,4 +89,7 @@ export const ifCondition = defineEntry({
     },
     options: {},
   }),
+  passthrough: true,
+  n8n: { required: ['conditions.conditions', 'conditions.combinator'], optional: ['options'] },
+  nodeOutputs: () => ({ exact: [] }),
 })

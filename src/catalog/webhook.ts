@@ -24,6 +24,9 @@ export const webhookReceive = defineEntry({
     ...(ctx.hasRespondNode ? { responseMode: 'responseNode' } : {}),
     options: {},
   }),
+  n8n: { required: ['httpMethod', 'path'], optional: ['responseMode', 'options'] },
+  // Lista pól treści żądania nie jest zapisana w węźle — dozwolona dowolna ścieżka pod `body`.
+  nodeOutputs: () => ({ exact: [], prefixes: ['body'] }),
 })
 
 export const webhookRespond = defineEntry({
@@ -43,4 +46,6 @@ export const webhookRespond = defineEntry({
     responseBody: JSON.stringify(p.body),
     options: {},
   }),
+  n8n: { required: ['responseBody'], fixed: { respondWith: 'json' }, optional: ['options'] },
+  nodeOutputs: () => ({ exact: [] }),
 })

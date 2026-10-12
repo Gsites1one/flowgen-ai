@@ -9,7 +9,8 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest run",
-    "compile:fixtures": "node scripts/compile-fixtures.ts"
+    "compile:fixtures": "node scripts/compile-fixtures.ts",
+    "build:functions": "node scripts/build-functions.ts"
   },
   "dependencies": {
     "@codemirror/lang-json": "^6.0.2",

@@ -24,4 +24,10 @@ export const slackSendMessage = defineEntry({
     // n8n domyślnie ustawia true — zawsze wyłączamy.
     otherOptions: { includeLinkToWorkflow: false },
   }),
+  n8n: {
+    required: ['channelId.value', 'text'],
+    fixed: { select: 'channel' },
+    optional: ['otherOptions'],
+  },
+  nodeOutputs: () => ({ exact: ['ts', 'channel'] }),
 })

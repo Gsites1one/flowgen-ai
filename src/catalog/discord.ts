@@ -20,4 +20,6 @@ export const discordWebhookMessage = defineEntry({
     content: ctx.value(p.content),
     options: {},
   }),
+  n8n: { required: ['content'], fixed: { authentication: 'webhook' }, optional: ['options'] },
+  nodeOutputs: () => ({ exact: [] }),
 })

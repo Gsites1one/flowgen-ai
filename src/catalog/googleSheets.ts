@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { defineEntry, plainOutputs, resourceLocator } from '../schema/catalog.ts'
+import { defineEntry, getPath, pathKey, plainOutputs, resourceLocator } from '../schema/catalog.ts'
 import { paramValueSchema } from '../schema/plan.ts'
 
 export const googleSheetsAppendRow = defineEntry({
@@ -45,4 +45,13 @@ export const googleSheetsAppendRow = defineEntry({
     },
     options: {},
   }),
+  n8n: {
+    required: ['documentId.value', 'sheetName.value', 'columns.value', 'columns.schema'],
+    fixed: { operation: 'append', 'columns.mappingMode': 'defineBelow' },
+    optional: ['options'],
+  },
+  nodeOutputs: (parameters) => {
+    const value = getPath(parameters, 'columns.value')
+    return { exact: value && typeof value === 'object' ? Object.keys(value).map(pathKey) : [] }
+  },
 })

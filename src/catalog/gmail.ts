@@ -25,6 +25,8 @@ export const gmailNewMessage = defineEntry({
       filters: { ...(q ? { q } : {}), readStatus: p.readStatus },
     }
   },
+  n8n: { required: ['pollTimes.item'], optional: ['filters'] },
+  nodeOutputs: () => ({ exact: ['id', 'threadId', 'snippet', 'From', 'To', 'Subject'] }),
 })
 
 export const gmailReply = defineEntry({
@@ -48,4 +50,10 @@ export const gmailReply = defineEntry({
     message: ctx.value(p.message),
     options: { appendAttribution: false },
   }),
+  n8n: {
+    required: ['messageId', 'message'],
+    fixed: { operation: 'reply', emailType: 'text' },
+    optional: ['options'],
+  },
+  nodeOutputs: () => ({ exact: ['id', 'threadId'] }),
 })

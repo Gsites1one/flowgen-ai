@@ -26,4 +26,9 @@ const entries: CatalogEntry[] = [
 
 export const catalog: ReadonlyMap<string, CatalogEntry> = new Map(entries.map((e) => [e.key, e]))
 
+/** Wpisy według typu węzła n8n (każdy typ występuje w katalogu raz). */
+export const catalogByType: ReadonlyMap<string, CatalogEntry> = new Map(entries.map((e) => [e.type, e]))
+
 export const RESPOND_KEY = webhookRespond.key
+export const RESPOND_TYPE = webhookRespond.type
+export const WEBHOOK_TYPE = webhookReceive.type

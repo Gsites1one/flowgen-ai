@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { defineEntry, resourceLocator } from '../schema/catalog.ts'
+import { defineEntry, getPath, joinPath, pathKey, resourceLocator } from '../schema/catalog.ts'
 import { paramValueSchema } from '../schema/plan.ts'
 
 const fieldName = z.string().regex(/^[A-Za-z_][A-Za-z0-9_]*$/)
@@ -58,6 +58,23 @@ export const openaiMessage = defineEntry({
           },
         },
       },
+    }
+  },
+  n8n: {
+    required: ['modelId.value', 'responses.values', 'options.textFormat.textOptions.schema'],
+    // Puste builtInTools: bez wyszukiwarki, interpretera kodu itp.
+    fixed: { 'options.textFormat.textOptions.type': 'json_schema', builtInTools: {} },
+  },
+  nodeOutputs: (parameters) => {
+    try {
+      const schema = JSON.parse(String(getPath(parameters, 'options.textFormat.textOptions.schema')))
+      return {
+        exact: Object.keys(schema.properties ?? {}).map((k) =>
+          joinPath('output[0].content[0].text', pathKey(k)),
+        ),
+      }
+    } catch {
+      return { exact: [] }
     }
   },
 })
